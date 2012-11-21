@@ -64,16 +64,21 @@ def visualize_3slices (vol, x=None, y=None, z=None, fig=None):
 #-------------------------------------------------------------------------------------
 # Mayavi2 options
 #-------------------------------------------------------------------------------------
-def visualize_twoplanes (img):
+def visualize_twoplanes (img, first_idx    = 10, 
+                              second_idx   = 10,
+                              first_plane  = 'x_axes',
+                              second_plane = 'y_axes',
+                        ):
+                             
     from mayavi import mlab
     mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(img),
-                            plane_orientation='x_axes',
-                            slice_index=10,
+                            plane_orientation=first_plane,
+                            slice_index=first_idx,
                             colormap='gray',
                         )
     mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(img),
-                            plane_orientation='y_axes',
-                            slice_index=10,
+                            plane_orientation=second_plane,
+                            slice_index=second_idx,
                             colormap='gray',
                         )
     mlab.outline()
