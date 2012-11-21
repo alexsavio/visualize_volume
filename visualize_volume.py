@@ -51,7 +51,7 @@ def visualize_3slices (vol, x=None, y=None, z=None, fig=None):
         y = np.around(ysli.val)
         z = np.around(zsli.val)
         #debug_here()
-        visualize_3Dvol (vol, x, y, z, fig)
+        visualize_3slices (vol, x, y, z, fig)
         #fig.set_data()
 
     xsli.on_changed(update)
