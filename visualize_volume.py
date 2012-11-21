@@ -64,12 +64,12 @@ def visualize_3slices (vol, x=None, y=None, z=None, fig=None):
 #-------------------------------------------------------------------------------------
 # Mayavi2 options
 #-------------------------------------------------------------------------------------
-def visualize_twoplanes (img, first_idx    = 10, 
+def visualize_cutplanes (img, first_idx    = 10, 
                               second_idx   = 10,
                               first_plane  = 'x_axes',
                               second_plane = 'y_axes',
                         ):
-                             
+
     from mayavi import mlab
     mlab.pipeline.image_plane_widget(mlab.pipeline.scalar_field(img),
                             plane_orientation=first_plane,
@@ -84,15 +84,24 @@ def visualize_twoplanes (img, first_idx    = 10,
     mlab.outline()
 
 #-------------------------------------------------------------------------------------
-def visualize_interactiveplane (img):
+def visualize_dynplane (img):
     from mayavi import mlab
     src = mlab.pipeline.scalar_field(img)
-    mlab.pipeline.iso_surface(src, contours=[s.min()+0.1*s.ptp(), ], opacity=0.1)
-    mlab.pipeline.iso_surface(src, contours=[s.max()-0.1*s.ptp(), ],)
+    mlab.pipeline.iso_surface(src, contours=[img.min()+0.1*img.ptp(), ], opacity=0.1)
+    mlab.pipeline.iso_surface(src, contours=[img.max()-0.1*img.ptp(), ],)
     mlab.pipeline.image_plane_widget(src,
                             plane_orientation='z_axes',
                             slice_index=10,
                             colormap='gray',
                         )
 
+#-------------------------------------------------------------------------------------
+def visualize_contour (img):
+    from mayavi import mlab
+    mlab.contour3d(img, colormap='gray')
+
+#-------------------------------------------------------------------------------------
+def visualize_render (img, vmin=0, vmax=0.8):
+    from mayavi import mlab
+    mlab.pipeline.volume(mlab.pipeline.scalar_field(img), vmin=vmin, vmax=vmax, colormap='gray')
 
