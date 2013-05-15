@@ -3,9 +3,8 @@
 #-------------------------------------------------------------------------------------
 # Matplotlib option
 #-------------------------------------------------------------------------------
-def visualize_3slices (vol, x=None, y=None, z=None, fig=None):
+def visualize_3slices (vol, vol2=None, x=None, y=None, z=None, fig=None, vol2_colormap = None, vol2_trans_val = 0, interpolation = 'nearest'):
     import numpy as np
-    import scipy.ndimage as scn
     import pylab as pl
 
     from matplotlib.widgets import Slider, Button
@@ -22,25 +21,51 @@ def visualize_3slices (vol, x=None, y=None, z=None, fig=None):
     else:
         fig = pl.figure(fig.number)
 
+    try:
+        if not np.ma.is_masked(vol2):
+            vol2 = np.ma.masked_equal(vol2, 0)
+    except:
+        pass
+
+    if vol2_colormap == None:
+        vol2_colormap = pl.cm.hot
+
     pl.subplot (2,2,1)
-    pl.imshow(scn.rotate(vol[x,...],90), cmap=pl.cm.gray)
+    pl.axis('off')
+    pl.imshow(np.rot90(vol[x,...]), cmap=pl.cm.gray, interpolation=interpolation)
+    try:
+        pl.imshow(np.rot90(vol2[x,...]), cmap=vol2_colormap, interpolation=interpolation)
+    except:
+        pass
     #pl.imshow(vol[x,...], cmap=pl.cm.gray)
-    pl.title ('X == ' + str(x))
+    pl.title ('X:' + str(int(x)))
 
     pl.subplot (2,2,2)
-    pl.imshow(scn.rotate(vol[:,y,:], 90), cmap=pl.cm.gray)
-    pl.title ('Y == ' + str(y))
+    pl.axis('off')
+    pl.imshow(np.rot90(vol[:,y,:]), cmap=pl.cm.gray, interpolation=interpolation)
+    try:
+        pl.imshow(np.rot90(vol2[:,y,:]), cmap=vol2_colormap, interpolation=interpolation)
+    except:
+        pass
+
+    pl.title ('Y:' + str(int(y)))
 
     pl.subplot (2,2,3)
-    pl.imshow(scn.rotate(vol[...,z], 90), cmap=pl.cm.gray)
-    pl.title ('Z == ' + str(z))
+    pl.axis ('off')
+    pl.imshow(np.rot90(vol[...,z]), cmap=pl.cm.gray, interpolation=interpolation)
+    try:
+        pl.imshow(np.rot90(vol2[...,z]), cmap=vol2_colormap, interpolation=interpolation)
+    except:
+        pass
+    pl.title ('Z:' + str(int(z)))
 
     pl.subplot (2,2,4)
 
+    pl.axis('off')
     axcolor = 'lightgoldenrodyellow'
-    xval = pl.axes([0.50, 0.20, 0.40, 0.03], axisbg=axcolor)
-    yval = pl.axes([0.50, 0.15, 0.40, 0.03], axisbg=axcolor)
-    zval = pl.axes([0.50, 0.10, 0.40, 0.03], axisbg=axcolor)
+    xval = pl.axes([0.60, 0.20, 0.20, 0.03], axisbg=axcolor)
+    yval = pl.axes([0.60, 0.15, 0.20, 0.03], axisbg=axcolor)
+    zval = pl.axes([0.60, 0.10, 0.20, 0.03], axisbg=axcolor)
 
     xsli = Slider(xval, 'X', 0, vol.shape[0]-1, valinit=x, valfmt='%i')
     ysli = Slider(yval, 'Y', 0, vol.shape[1]-1, valinit=y, valfmt='%i')
@@ -51,7 +76,7 @@ def visualize_3slices (vol, x=None, y=None, z=None, fig=None):
         y = np.around(ysli.val)
         z = np.around(zsli.val)
         #debug_here()
-        visualize_3slices (vol, x, y, z, fig)
+        visualize_3slices (vol, vol2, x, y, z, fig)
         #fig.set_data()
 
     xsli.on_changed(update)
@@ -97,6 +122,7 @@ def visualize_dynplane (img):
                             colormap='gray',
                         )
 
+
 #-------------------------------------------------------------------------------------
 def visualize_contour (img):
     from mayavi import mlab
@@ -106,4 +132,83 @@ def visualize_contour (img):
 def visualize_render (img, vmin=0, vmax=0.8):
     from mayavi import mlab
     mlab.pipeline.volume(mlab.pipeline.scalar_field(img), vmin=vmin, vmax=vmax, colormap='gray')
+
+#-------------------------------------------------------------------------------------
+# pyqtgraph option
+#-------------------------------------------------------------------------------
+#def visualize (vol):
+
+#    import sys
+#    import numpy as np
+#    import nibabel as nib
+
+#    f = '/old_data/data/vbm_svm/subjects_nifti/control_OAS1_0001_MR1_mpr_n4_anon_111_t88_gfc.nii'
+#    s = nib.load(f).get_data()
+#    vol = s.copy()
+
+#    import numpy as np
+#    import scipy
+#    from pyqtgraph.Qt import QtCore, QtGui
+#    import pyqtgraph as pg
+
+#    app = QtGui.QApplication([])
+
+#    ## Create window with three ImageView widgets
+#    win = QtGui.QMainWindow()
+#    win.resize(800,800)
+#    cw = QtGui.QWidget()
+#    win.setCentralWidget(cw)
+#    l = QtGui.QGridLayout()
+#    cw.setLayout(l)
+#    imv1 = pg.ImageView()
+#    imv2 = pg.ImageView()
+#    imv3 = pg.ImageView()
+#    l.addWidget(imv1, 0, 0)
+#    l.addWidget(imv2, 1, 0)
+#    l.addWidget(imv3, 0, 1)
+#    win.show()
+
+#    roi = pg.TestROI(pos=[10, 10], size=pg.Point(2,2), pen='r') 
+#    imv1.addItem(roi)
+
+#    def update():
+#        global vol, imv1, imv2, imv3
+#        d2 = roi.getArrayRegion(vol, imv1.imageItem, axes=(1,2))
+#        imv2.setImage(d2)
+
+#    imv1.setImage(vol)
+
+#    volmin = np.min(vol)
+#    volmax = np.max(vol)
+#    imv1.setHistogramRange(volmin, volmax)
+
+#    lowlvl = 0
+#    uprlvl = 1
+#    if volmin < 0: 
+#        lowlvl = volmin
+
+#    if volmax > 1: 
+#        uprlvl = volmax
+
+#    imv1.setLevels(lowlvl, uprlvl)
+
+#    update()
+#    
+#    if sys.flags.interactive != 1:
+#        app.exec_()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
