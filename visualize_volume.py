@@ -1,11 +1,84 @@
 #!/usr/bin/python
 
+import numpy as np
+
+#-------------------------------------------------------------------------------------
+def takespread (sequence, num):
+    length = float(len(sequence))
+    for i in range(num):
+        yield sequence[int(np.ceil(i * length / num))]
+
+#-------------------------------------------------------------------------------------
+def makespread (sequence, num):
+    length = float(len(sequence))
+    seq = np.array(sequence)
+    return seq[np.ceil(np.arange(num) * length / num).astype(int)]
+
+#-------------------------------------------------------------------------------------
+def show_many_slices (vol, vol2=None, volaxis=1, n_slices=[8, 8], slices_idx=None,
+                      vol2_colormap=None, vol2_transp_val=0, interpolation='nearest',
+                      figtitle=''):
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.axes_grid1 import ImageGrid
+
+    assert vol.shape == vol2.shape, 'vol do not have the same shape as vol2'
+
+    try:
+        if not np.ma.is_masked(vol2):
+            vol2 = np.ma.masked_equal(vol2, vol2_transp_val)
+    except:
+        pass
+
+    if vol2_colormap == None:
+        vol2_colormap = plt.cm.jet
+
+    size   = vol.shape[volaxis]
+    n_rows = len(n_slices)
+    n_cols = max(n_slices)
+
+    if not slices_idx:
+        slice_idx = makespread (range(size), np.sum(n_slices))
+
+    fig  = plt.figure(figtitle)
+
+    grid = ImageGrid(fig, 111, (n_rows, n_cols), axes_pad=0, direction='column')
+
+    c = 1
+    for i in slice_idx:
+        g = grid[c-1]
+
+        img = vol.take([i], volaxis).squeeze()
+        g.imshow(np.rot90(img), cmap=plt.cm.gray, interpolation=interpolation)
+
+        if isinstance(vol2, np.ndarray):
+            img2 = vol2.take([i], volaxis).squeeze()
+            img2 = np.ma.masked_where(img2 == vol2_transp_val, img2)
+            g.imshow(np.rot90(img2), cmap=vol2_colormap, interpolation=interpolation)
+
+        gpos  = g.get_position()
+        gaxes = g.get_axes()
+        textx = img.shape[0]/2
+        texty = 4
+        g.text(textx, texty, str(i), horizontalalignment='center',
+               fontsize=12, fontname='Arial', color = '#0055ff')
+        g.axis('off')
+
+        c += 1
+
+
 #-------------------------------------------------------------------------------------
 # Matplotlib option
 #-------------------------------------------------------------------------------
-def visualize_3slices (vol, vol2=None, x=None, y=None, z=None, fig=None, vol2_colormap = None, vol2_trans_val = 0, interpolation = 'nearest'):
+def show_3slices (vol, vol2=None, x=None, y=None, z=None, fig=None, 
+                       vol2_colormap = None, vol2_transp_val = 0, 
+                    interpolation = 'nearest'):
+
+    assert vol.shape == vol2.shape, 'vol do not have the same shape as vol2'
+
     import numpy as np
-    import pylab as pl
+    import matplotlib.pyplot as plt
 
     from matplotlib.widgets import Slider, Button
 
@@ -17,55 +90,55 @@ def visualize_3slices (vol, vol2=None, x=None, y=None, z=None, fig=None, vol2_co
         z = np.floor(vol.shape[2]/2)
 
     if not fig:
-        fig = pl.figure()
+        fig = plt.figure()
     else:
-        fig = pl.figure(fig.number)
+        fig = plt.figure(fig.number)
 
     try:
         if not np.ma.is_masked(vol2):
-            vol2 = np.ma.masked_equal(vol2, 0)
+            vol2 = np.ma.masked_equal(vol2, vol2_transp_val)
     except:
         pass
 
     if vol2_colormap == None:
-        vol2_colormap = pl.cm.hot
+        vol2_colormap = plt.cm.hot
 
-    pl.subplot (2,2,1)
-    pl.axis('off')
-    pl.imshow(np.rot90(vol[x,...]), cmap=pl.cm.gray, interpolation=interpolation)
+    plt.subplot (2,2,1)
+    plt.axis('off')
+    plt.imshow(np.rot90(vol[x,...]), cmap=plt.cm.gray, interpolation=interpolation)
     try:
-        pl.imshow(np.rot90(vol2[x,...]), cmap=vol2_colormap, interpolation=interpolation)
+        plt.imshow(np.rot90(vol2[x,...]), cmap=vol2_colormap, interpolation=interpolation)
     except:
         pass
-    #pl.imshow(vol[x,...], cmap=pl.cm.gray)
-    pl.title ('X:' + str(int(x)))
+    #plt.imshow(vol[x,...], cmap=plt.cm.gray)
+    plt.title ('X:' + str(int(x)))
 
-    pl.subplot (2,2,2)
-    pl.axis('off')
-    pl.imshow(np.rot90(vol[:,y,:]), cmap=pl.cm.gray, interpolation=interpolation)
+    plt.subplot (2,2,2)
+    plt.axis('off')
+    plt.imshow(np.rot90(vol[:,y,:]), cmap=plt.cm.gray, interpolation=interpolation)
     try:
-        pl.imshow(np.rot90(vol2[:,y,:]), cmap=vol2_colormap, interpolation=interpolation)
+        plt.imshow(np.rot90(vol2[:,y,:]), cmap=vol2_colormap, interpolation=interpolation)
     except:
         pass
 
-    pl.title ('Y:' + str(int(y)))
+    plt.title ('Y:' + str(int(y)))
 
-    pl.subplot (2,2,3)
-    pl.axis ('off')
-    pl.imshow(np.rot90(vol[...,z]), cmap=pl.cm.gray, interpolation=interpolation)
+    plt.subplot (2,2,3)
+    plt.axis ('off')
+    plt.imshow(np.rot90(vol[...,z]), cmap=plt.cm.gray, interpolation=interpolation)
     try:
-        pl.imshow(np.rot90(vol2[...,z]), cmap=vol2_colormap, interpolation=interpolation)
+        plt.imshow(np.rot90(vol2[...,z]), cmap=vol2_colormap, interpolation=interpolation)
     except:
         pass
-    pl.title ('Z:' + str(int(z)))
+    plt.title ('Z:' + str(int(z)))
 
-    pl.subplot (2,2,4)
+    plt.subplot (2,2,4)
 
-    pl.axis('off')
+    plt.axis('off')
     axcolor = 'lightgoldenrodyellow'
-    xval = pl.axes([0.60, 0.20, 0.20, 0.03], axisbg=axcolor)
-    yval = pl.axes([0.60, 0.15, 0.20, 0.03], axisbg=axcolor)
-    zval = pl.axes([0.60, 0.10, 0.20, 0.03], axisbg=axcolor)
+    xval = plt.axes([0.60, 0.20, 0.20, 0.03], axisbg=axcolor)
+    yval = plt.axes([0.60, 0.15, 0.20, 0.03], axisbg=axcolor)
+    zval = plt.axes([0.60, 0.10, 0.20, 0.03], axisbg=axcolor)
 
     xsli = Slider(xval, 'X', 0, vol.shape[0]-1, valinit=x, valfmt='%i')
     ysli = Slider(yval, 'Y', 0, vol.shape[1]-1, valinit=y, valfmt='%i')
@@ -83,7 +156,7 @@ def visualize_3slices (vol, vol2=None, x=None, y=None, z=None, fig=None, vol2_co
     ysli.on_changed(update)
     zsli.on_changed(update)
 
-    pl.show()
+    plt.show()
 
     return fig
 #-------------------------------------------------------------------------------------
@@ -91,7 +164,7 @@ def visualize_3slices (vol, vol2=None, x=None, y=None, z=None, fig=None, vol2_co
 #-------------------------------------------------------------------------------------
 # Mayavi2 options
 #-------------------------------------------------------------------------------------
-def visualize_cutplanes (img, first_idx    = 10, 
+def show_cutplanes (img, first_idx    = 10, 
                               second_idx   = 10,
                               first_plane  = 'x_axes',
                               second_plane = 'y_axes',
@@ -111,7 +184,7 @@ def visualize_cutplanes (img, first_idx    = 10,
     mlab.outline()
 
 #-------------------------------------------------------------------------------------
-def visualize_dynplane (img):
+def show_dynplane (img):
     from mayavi import mlab
     src = mlab.pipeline.scalar_field(img)
     mlab.pipeline.iso_surface(src, contours=[img.min()+0.1*img.ptp(), ], opacity=0.1)
@@ -124,12 +197,12 @@ def visualize_dynplane (img):
 
 
 #-------------------------------------------------------------------------------------
-def visualize_contour (img):
+def show_contour (img):
     from mayavi import mlab
     mlab.contour3d(img, colormap='gray')
 
 #-------------------------------------------------------------------------------------
-def visualize_render (img, vmin=0, vmax=0.8):
+def show_render (img, vmin=0, vmax=0.8):
     from mayavi import mlab
     mlab.pipeline.volume(mlab.pipeline.scalar_field(img), vmin=vmin, vmax=vmax, colormap='gray')
 
