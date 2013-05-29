@@ -41,7 +41,7 @@ def show_many_slices (vol, vol2=None, volaxis=1, n_slices=[8, 8], slices_idx=Non
     if not slices_idx:
         slice_idx = makespread (range(size), np.sum(n_slices))
 
-    fig  = plt.figure(figtitle)
+    fig  = plt.figure(figtitlemany)
 
     grid = ImageGrid(fig, 111, (n_rows, n_cols), axes_pad=0, direction='column')
 
