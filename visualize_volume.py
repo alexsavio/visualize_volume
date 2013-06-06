@@ -23,16 +23,11 @@ def show_many_slices (vol, vol2=None, volaxis=1, n_slices=[8, 8], slices_idx=Non
     import matplotlib.pyplot as plt
     from mpl_toolkits.axes_grid1 import ImageGrid
 
-    assert vol.shape == vol2.shape, 'vol do not have the same shape as vol2'
+    if isinstance(vol2, np.ndarray):
+        if vol2_colormap == None:
+            vol2_colormap = plt.cm.jet
 
-    try:
-        if not np.ma.is_masked(vol2):
-            vol2 = np.ma.masked_equal(vol2, vol2_transp_val)
-    except:
-        pass
-
-    if vol2_colormap == None:
-        vol2_colormap = plt.cm.jet
+        assert vol.shape == vol2.shape, 'vol do not have the same shape as vol2'
 
     size   = vol.shape[volaxis]
     n_rows = len(n_slices)
@@ -67,6 +62,7 @@ def show_many_slices (vol, vol2=None, volaxis=1, n_slices=[8, 8], slices_idx=Non
 
         c += 1
 
+    return fig
 
 #-------------------------------------------------------------------------------------
 # Matplotlib option
